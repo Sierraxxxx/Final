@@ -1,0 +1,10 @@
+// =====================================================================
+// Sys.vm  -  Ejercicio 2 (Serie de Fibonacci)
+// El bootstrap del traductor hace SP = 256 y luego "call Sys.init 0".
+// =====================================================================
+
+function Sys.init 0
+    call Main.main 0        // ejecuta todo el programa
+    pop temp 0              // descarta el 0 que devuelve Main.main (void)
+label HALT
+    goto HALT               // fin: ciclo infinito

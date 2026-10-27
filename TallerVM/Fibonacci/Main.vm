@@ -1,0 +1,84 @@
+// =====================================================================
+// Main.vm  -  Ejercicio 2: serie de Fibonacci en lenguaje VM
+//
+// Funciones:
+//   Main.main            punto de entrada (lo llama Sys.init)
+//   Main.series n base   escribe F(0), F(1), ..., F(n-1) en
+//                        RAM[base], RAM[base+1], ..., RAM[base+n-1]
+//   Main.fib n           devuelve F(n) de forma recursiva
+//
+// Resultado con n = 10 y base = 3000:
+//   RAM[3000..3009] = 0, 1, 1, 2, 3, 5, 8, 13, 21, 34
+// Limite: F(23) = 28657 es el ultimo que cabe en 16 bits con signo.
+// =====================================================================
+
+
+// ---------------------------------------------------------------------
+// Main.main()
+//   local 0 = n   cuantos terminos de la serie queremos
+// ---------------------------------------------------------------------
+function Main.main 1
+    push constant 10
+    pop local 0             // n = 10
+    push local 0            // argument 0 de series: n
+    push constant 3000      // argument 1 de series: direccion donde empieza la serie
+    call Main.series 2
+    pop temp 0              // descarta el 0 que devuelve series (void)
+    push constant 0
+    return                  // Main.main tambien es "void"
+
+
+// ---------------------------------------------------------------------
+// Main.series(n, base)
+//   argument 0 = n      cantidad de terminos
+//   argument 1 = base   direccion de RAM donde se escribe F(0)
+//   local 0    = i      indice del termino actual (empieza en 0)
+//   Usa el segmento "that": pointer 1 (THAT) = base + i, y that 0 = RAM[base + i]
+// ---------------------------------------------------------------------
+function Main.series 1
+label CICLO
+    push local 0
+    push argument 0
+    lt                      // tope = (i < n) ? -1 : 0
+    not                     // tope = NOT (i < n)
+    if-goto FIN             // si ya NO se cumple i < n, terminamos
+    push argument 1
+    push local 0
+    add
+    pop pointer 1           // THAT = base + i  (apunta a la celda del termino i)
+    push local 0
+    call Main.fib 1         // tope = F(i).  THAT se guarda en el frame y se restaura al volver
+    pop that 0              // RAM[base + i] = F(i)
+    push local 0
+    push constant 1
+    add
+    pop local 0             // i = i + 1
+    goto CICLO
+label FIN
+    push constant 0
+    return
+
+
+// ---------------------------------------------------------------------
+// Main.fib(n)   F(0) = 0, F(1) = 1, F(n) = F(n-1) + F(n-2)
+//   argument 0 = n
+//   sin locales: los resultados parciales viven en la pila de trabajo
+// ---------------------------------------------------------------------
+function Main.fib 0
+    push argument 0
+    push constant 2
+    lt                      // tope = (n < 2) ? -1 : 0
+    if-goto CASO_BASE       // si n < 2, F(n) = n
+    push argument 0
+    push constant 1
+    sub
+    call Main.fib 1         // pila de trabajo: F(n-1)
+    push argument 0
+    push constant 2
+    sub
+    call Main.fib 1         // pila de trabajo: F(n-1), F(n-2)
+    add                     // pila de trabajo: F(n-1) + F(n-2)
+    return
+label CASO_BASE
+    push argument 0
+    return                  // F(0) = 0, F(1) = 1

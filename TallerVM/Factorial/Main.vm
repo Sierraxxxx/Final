@@ -1,0 +1,79 @@
+// =====================================================================
+// Main.vm  -  Ejercicio 1: factorial de n, recursivo, en lenguaje VM
+//
+// Funciones:
+//   Main.main          punto de entrada (lo llama Sys.init)
+//   Main.factorial n   devuelve n! (recursiva)
+//   Main.multiply a b  devuelve a*b (la VM no tiene multiplicacion)
+//
+// Resultado: n! queda en la variable estatica Main.0, que el
+// ensamblador ubica en RAM[16]. Con n = 3 -> RAM[16] = 6.
+// Limite: la Hack es de 16 bits con signo (max 32767), asi que n <= 7.
+// =====================================================================
+
+
+// ---------------------------------------------------------------------
+// Main.main()
+//   local 0 = n          numero cuyo factorial calculamos
+//   local 1 = resultado  aqui guardamos n!
+// ---------------------------------------------------------------------
+function Main.main 2        // reserva 2 locales y las pone en 0
+    push constant 3
+    pop local 0             // n = 3
+    push local 0            // n queda en el tope: sera argument 0 del llamado
+    call Main.factorial 1   // al volver, el tope es n!
+    pop local 1             // resultado = n!
+    push local 1
+    pop static 0            // Main.0 = resultado  (visible en RAM[16])
+    push constant 0         // Main.main es "void": devuelve 0 por convencion
+    return
+
+
+// ---------------------------------------------------------------------
+// Main.factorial(n)
+//   argument 0 = n
+//   sin locales
+//   Caso base:      n < 2  ->  devuelve 1
+//   Caso recursivo: devuelve factorial(n - 1) * n
+// ---------------------------------------------------------------------
+function Main.factorial 0
+    push argument 0
+    push constant 2
+    lt                      // tope = (n < 2) ?  -1 (verdadero) : 0 (falso)
+    if-goto CASO_BASE       // saca el tope; si es distinto de 0, salta
+    push argument 0
+    push constant 1
+    sub                     // tope = n - 1
+    call Main.factorial 1   // tope = factorial(n - 1)
+    push argument 0         // tope = n   (debajo sigue factorial(n - 1))
+    call Main.multiply 2    // tope = factorial(n - 1) * n
+    return                  // devuelve el tope al llamador
+label CASO_BASE
+    push constant 1
+    return                  // factorial(0) = factorial(1) = 1
+
+
+// ---------------------------------------------------------------------
+// Main.multiply(a, b)   multiplicacion por sumas repetidas
+//   argument 0 = a       lo que se suma
+//   argument 1 = b       contador de vueltas (debe ser >= 0)
+//   local 0    = acumulado (empieza en 0 porque "function" lo inicializa)
+// ---------------------------------------------------------------------
+function Main.multiply 1
+label CICLO
+    push argument 1
+    push constant 0
+    eq                      // tope = (b == 0) ? -1 : 0
+    if-goto FIN             // si b == 0 ya terminamos
+    push local 0
+    push argument 0
+    add
+    pop local 0             // acumulado = acumulado + a
+    push argument 1
+    push constant 1
+    sub
+    pop argument 1          // b = b - 1  (el argumento es una copia: se puede modificar)
+    goto CICLO
+label FIN
+    push local 0
+    return                  // devuelve a * b
