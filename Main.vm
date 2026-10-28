@@ -1,0 +1,68 @@
+// Archivo: Main.vm
+
+// Función Principal: Itera desde i=0 hasta n (argument 0).
+function Main.computeSum 2
+label LOOP_START
+// Evalúa si i (local 0) > n (argument 0)
+push local 0
+push argument 0
+gt
+if-goto LOOP_END
+
+// Invoca a addTwo pasándole i
+push local 0
+call Main.addTwo 1
+
+// Invoca a square pasándole el resultado de addTwo (que ya está en la pila)
+call Main.square 1
+
+// Acumula el resultado en la suma total (local 1)
+push local 1
+add
+pop local 1
+
+// Incrementa i en 1
+push local 0
+push constant 1
+add
+pop local 0
+goto LOOP_START
+
+label LOOP_END
+// Retorna la suma total
+push local 1
+return
+
+// Subfunción 1: Suma la constante 2 a su argumento de entrada
+function Main.addTwo 0
+push argument 0
+push constant 2
+add
+return
+
+// Subfunción 2: Calcula el cuadrado sumando el argumento a sí mismo
+function Main.square 2
+label SQUARE_LOOP
+// Evalúa si el contador j (local 0) == x (argument 0)
+push local 0
+push argument 0
+eq
+if-goto SQUARE_END
+
+// Suma x al resultado parcial (local 1)
+push local 1
+push argument 0
+add
+pop local 1
+
+// Incrementa j en 1
+push local 0
+push constant 1
+add
+pop local 0
+goto SQUARE_LOOP
+
+label SQUARE_END
+// Retorna el cuadrado calculado
+push local 1
+return

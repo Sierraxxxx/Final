@@ -1,0 +1,8 @@
+// Archivo: Sys.vm
+function Sys.init 0
+// Definimos n = 3 como ejemplo
+push constant 4
+call Main.computeSum 1
+// Bucle infinito para finalizar la ejecución
+label WHILE
+goto WHILE
